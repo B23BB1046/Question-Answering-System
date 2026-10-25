@@ -1,136 +1,48 @@
-# Question Answering System
+# Question Answering System with PyTorch
 
-## Overview
-This project implements a **Question Answering System** using **LSTM (Long Short-Term Memory)** with **PyTorch**. The system is trained on a question-answering dataset, where it undergoes tokenization, preprocessing, and conversion of categorical data into numerical format. The project includes:
+A learning project that explores question answering with an LSTM-based neural network in PyTorch. The workflow covers preparing question–answer pairs, converting text into numerical representations, batching examples, and training a sequence model.
 
-- Tokenization and preprocessing of text data.
-- Encoding categorical data into numerical format.
-- Creating a **custom class** for dataset management.
-- Implementing a **DataLoader** for efficient batch processing.
-- Building and training an **LSTM Model** with:
-  - **Learning rate:** 0.001
-  - **Epochs:** 50
-- Performing **predictions** after training.
+## Features
 
----
+- Text cleaning and tokenization.
+- A custom PyTorch dataset and DataLoader workflow.
+- LSTM-based model training.
+- Question-to-answer prediction experiments.
+- A small question–answer dataset included in the repository.
 
+## Repository contents
 
----
+| File | Purpose |
+|---|---|
+| `Question_Answering_system_using_pytorch.ipynb` | Model and training notebook |
+| `100_Unique_QA_Dataset.csv` | Example question–answer data |
+| `Question_Answering_System_README (1).md` | Additional project notes |
+| `README.md` | Main documentation |
 
-## Dataset
-The dataset consists of **question-answer pairs**. The preprocessing steps include:
-1. Tokenizing the text data.
-2. Cleaning and normalizing text.
-3. Converting categorical data (words) into numerical representations.
+## Getting started
 
----
-
-## Implementation Details
-
-### 1. Data Preprocessing
-- Tokenization is performed using `nltk` or similar libraries.
-- Text data is cleaned and normalized.
-- Questions and answers are converted into numerical format using an encoding method.
-
-### 2. Dataset Class & DataLoader
-A custom PyTorch Dataset class is created to load and process the dataset:
-
-```python
-from torch.utils.data import Dataset, DataLoader
-
-class QADataset(Dataset):
-    def __init__(self, data, tokenizer):
-        self.data = data
-        self.tokenizer = tokenizer
-        
-    def __len__(self):
-        return len(self.data)
-    
-    def __getitem__(self, idx):
-        item = self.data[idx]
-        question_tokens = self.tokenizer(item['question'])
-        answer_label = item['answer_label']
-        return {
-            'input': torch.tensor(question_tokens, dtype=torch.long),
-            'label': torch.tensor(answer_label, dtype=torch.long)
-        }
-
-# Example usage:
-# dataset = QADataset(data, tokenizer_function)
-# dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+```bash
+git clone https://github.com/B23BB1046/Question-Answering-System.git
+cd Question-Answering-System
 ```
 
-### 3. LSTM Model
-The LSTM model is implemented in PyTorch:
+Open the notebook in Jupyter or Google Colab, install the packages imported by its cells, and run the workflow from top to bottom.
 
-```python
-import torch
-import torch.nn as nn
+## Approach
 
-class LSTMQA(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
-        super(LSTMQA, self).__init__()
-        self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_dim, output_dim)
-        
-    def forward(self, x):
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_dim).to(x.device)
-        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_dim).to(x.device)
-        out, _ = self.lstm(x, (h0, c0))
-        out = self.fc(out[:, -1, :])
-        return out
-```
+1. Load and clean the question–answer pairs.
+2. Tokenize text and build vocabulary/index mappings.
+3. Convert text into numerical sequences.
+4. Create batches with a custom Dataset and DataLoader.
+5. Train the LSTM model and inspect prediction examples.
 
-### 4. Training the Model
+## Important limitations
 
-```python
-import torch.optim as optim
+This is an experimental LSTM-based approach, not a production-grade conversational or retrieval-augmented QA system. A small dataset may limit generalization. For a stronger evaluation, use held-out data, compare exact-match/F1 where appropriate, inspect failure cases, and document the split strategy.
 
-input_dim = 100  # Example input dimension (e.g., embedding size)
-hidden_dim = 128
-output_dim = 10  # Number of output classes
-num_layers = 2
+## Future improvements
 
-model = LSTMQA(input_dim, hidden_dim, output_dim, num_layers)
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-num_epochs = 50
-for epoch in range(num_epochs):
-    for batch in dataloader:
-        inputs = batch['input']
-        labels = batch['label']
-        
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-    
-    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
-```
-
-### 5. Prediction
-After training, predictions are made using:
-
-```python
-model.eval()
-with torch.no_grad():
-    test_question = "What is the capital of France?"
-    test_tokens = tokenizer(test_question)
-    test_input = torch.tensor(test_tokens, dtype=torch.long).unsqueeze(0)
-    prediction = model(test_input)
-    predicted_label = prediction.argmax(dim=1).item()
-    print("Predicted Answer Label:", predicted_label)
-```
-
----
-
-## Conclusion
-This project successfully implements a **Question Answering System** using **LSTM in PyTorch**. The system undergoes preprocessing, training, and evaluation, and is capable of predicting answers based on input questions. The model can be further improved by experimenting with hyperparameters, embeddings, and dataset augmentation.
-
-
-
-
+- Add a pinned `requirements.txt` and one-command setup.
+- Save/load the vocabulary and trained model for inference.
+- Compare against a retrieval baseline.
+- Include sample inputs, outputs, and error analysis.
